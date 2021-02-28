@@ -24,7 +24,7 @@ class VOCDataset(Dataset):
         INV_CLASS[CLASS_NAMES[i]] = i
 
     # TODO: Adjust data_dir according to where **you** stored the data
-    def __init__(self, split, size, data_dir='VOCdevkit/VOC2007/'):
+    def __init__(self, split, size, data_dir="VOCdevkit/VOC2007/"):
         super().__init__()
         self.split = split
         self.data_dir = data_dir
@@ -55,10 +55,11 @@ class VOCDataset(Dataset):
          where both class and weight are a numpy array in shape of [20],
         """
         label_list = []
-        for index in self.index_list:
+        for index in self.index_list: # 5011 train and val images
             fpath = os.path.join(self.ann_dir, index + '.xml')
             tree = ET.parse(fpath)
             # TODO: insert your code here, preload labels
+            # find the class and weight
 
         return label_list
 
