@@ -14,6 +14,8 @@ import torch.nn
 from PIL import Image
 from torch.utils.data import Dataset
 
+import torchvision.transforms as transforms
+
 
 class VOCDataset(Dataset):
     CLASS_NAMES = ['aeroplane', 'bicycle', 'bird', 'boat', 'bottle', 'bus', 'car',
@@ -59,7 +61,35 @@ class VOCDataset(Dataset):
             fpath = os.path.join(self.ann_dir, index + '.xml')
             tree = ET.parse(fpath)
             # TODO: insert your code here, preload labels
-            # find the class and weight
+            # define numpy range array from 1 to 20
+            classArr = np.zeros((20))
+
+            # define weight array as zeros
+            weightArr = np.ones((20))
+
+            # define a not difficult vector
+            notDiffVect = np.zeros((20))
+
+            # output name, truncation, and difficulty from xml
+            nameList = tree.findall('object/name')
+            diffList = tree.findall('object/difficult')
+
+            # if index == '000126':
+            #     print('found it!')
+
+            # for loop through parsed data
+            for i in range(len(nameList)):
+
+                if(diffList[i].text == '1' and notDiffVect[self.get_class_index(nameList[i].text)] == 0):
+                    weightArr[self.get_class_index(nameList[i].text)] = 0
+                if(diffList[i].text == '0'):
+                    notDiffVect[self.get_class_index(nameList[i].text)] = 1
+                    weightArr[self.get_class_index(nameList[i].text)] = 1
+                classArr[self.get_class_index(nameList[i].text)] = 1
+
+
+            # append both classes and weights to label_list
+            label_list.append(np.append(classArr[:,np.newaxis], weightArr[:,np.newaxis], axis=1))
 
         return label_list
 
@@ -74,8 +104,39 @@ class VOCDataset(Dataset):
         findex = self.index_list[index]
         fpath = os.path.join(self.img_dir, findex + '.jpg')
         # TODO: insert your code here. hint: read image, find the labels and weight.
+        # get class and weights from self.anno_list
+        fclass= self.anno_list[index][:,0]
+        fweight = self.anno_list[index][:,1]
+        fimg = Image.open(fpath)
 
-        image = torch.FloatTensor(img)
+
+        transform = transforms.Compose([
+            transforms.Resize((256,256)),
+            transforms.RandomCrop(224),
+            transforms.RandomHorizontalFlip(1),
+            transforms.ToTensor(),
+            transforms.Normalize((0.485, 0.456, 0.406), (0.229, 0.224, 0.225))
+        ])
+
+        #process image by rescaling based on webpage mean and std
+        # transform = transforms.Compose([
+        #     transforms.Resize((224,224)),
+        #     transforms.RandomHorizontalFlip(),
+        #     transforms.ToTensor(),
+        #     transforms.Normalize((0.485, 0.456, 0.406), (0.229, 0.224, 0.225)),
+        # ])
+
+
+        img = transform(fimg)
+        lab_vec = fclass
+        wgt_vec = fweight
+
+
+
+        #convert class index to label
+
+
+        image = torch.FloatTensor(img) # .permute(2,0,1)
         label = torch.FloatTensor(lab_vec)
         wgt = torch.FloatTensor(wgt_vec)
         return image, label, wgt
