@@ -10,6 +10,9 @@ import numpy as np
 import utils
 from voc_dataset import VOCDataset
 
+import torch.nn as nn
+import os
+
 
 def save_this_epoch(args, epoch):
         # TODO: Q2 check if model should be saved this epoch
@@ -18,7 +21,9 @@ def save_this_epoch(args, epoch):
 
 def save_model(epoch, model_name, model):
     # TODO: Q2 Implement code for model saving
-    raise NotImplementedError
+    savePath = os.path.join('q1_saved_models/',str(epoch), '-',str(model_name))
+    torch.save(model.state_dict(),'')
+    # raise NotImplementedError
 
 
 def train(args, model, optimizer, scheduler=None, model_name='model'):
@@ -42,7 +47,7 @@ def train(args, model, optimizer, scheduler=None, model_name='model'):
             output = model(data)
             # Calculate the loss
             # TODO: your loss for multi-label clf?
-            loss = 0
+            loss = nn.functional.binary_cross_entropy_with_logits(output,target*wgt)# .to(args.device)
             # Calculate gradient w.r.t the loss
             loss.backward()
             # Optimizer takes one step
@@ -65,3 +70,7 @@ def train(args, model, optimizer, scheduler=None, model_name='model'):
     test_loader = utils.get_data_loader('voc', train=False, batch_size=args.test_batch_size, split='test')
     ap, map = utils.eval_dataset_map(model, args.device, test_loader)
     return ap, map
+
+# implemented to avoid freeze_support() error
+if __name__ == '__main__':
+    train(args, model, optimizer, scheduler=None, model_name='model')

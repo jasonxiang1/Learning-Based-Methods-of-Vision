@@ -9,6 +9,7 @@ import numpy as np
 import sklearn.metrics
 from torch.utils.data import DataLoader
 
+import torch.nn as nn
 
 class ARGS(object):
     """
@@ -48,7 +49,7 @@ class ARGS(object):
     # set this to value >0 if you wish to save every x epochs
     save_freq=-1
     # set true if using GPU during training
-    use_cuda = False
+    use_cuda = True
 
     def __init__(self, **kwargs):
         for k, v in kwargs.items():
@@ -121,12 +122,38 @@ def eval_dataset_map(model, device, test_loader):
          AP (list): Average Precision for all classes
          MAP (float): mean average precision
     """
+
     with torch.no_grad():
+        gt = np.array([]).reshape(0,20)
+        pred = np.array([]).reshape(0,20)
+        valid = np.array([]).reshape(0,20)
+
+        gt = torch.from_numpy(gt).to(device)
+        pred = torch.from_numpy(pred).to(device)
+        valid = torch.from_numpy(valid).to(device)
+
         for data, target, wgt in test_loader:
             ## TODO insert your code here
-            gt, pred, valid = None, None, None
-            pass
-    AP = compute_ap(gt, pred, valid)
+
+            # gt = np.concatenate((gt,target),axis=0)
+            # pred = np.concatenate((pred,model(data)),axis=0)
+            # valid = np.concatenate((valid,wgt),axis=0)
+
+
+            gt = torch.cat((gt,target.to(device)),axis = 0)# target.to(device)
+
+            m = nn.Sigmoid()
+
+            modelPred = m(model(data.to(device))) # data.to(device)
+
+            pred = torch.cat((pred,modelPred), axis = 0)
+            valid = torch.cat((valid, wgt.to(device)), axis = 0) # wgt.to(device)
+
+
+            # gt, pred, valid = None, None, None
+            # pass
+        
+    AP = compute_ap(gt.cpu().numpy(), pred.cpu().numpy(), valid.cpu().numpy())
 
     mAP = np.mean(AP)
     return AP, mAP

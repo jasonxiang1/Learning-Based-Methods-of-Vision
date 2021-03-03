@@ -47,6 +47,7 @@ class SimpleCNN(nn.Module):
 
         # TODO: q0.1 Modify the code here
         self.flat_dim = 7*7*64
+        # self.flat_dim = 56*56*64
         # chain your layers by Sequential -- another way
         # TODO: Modify the code here
         self.fc1 = nn.Sequential(*get_fc(self.flat_dim, 128, 'relu'))
