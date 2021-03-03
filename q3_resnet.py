@@ -11,13 +11,13 @@ from utils import ARGS
 from simple_cnn import SimpleCNN
 from voc_dataset import VOCDataset
 
-torch.cuda.empty_cache()
+# torch.cuda.empty_cache()
 '''
 model is already initialized with random weights
 '''
 # %%
 
-args = ARGS(batch_size = 8, epochs=50, lr = 0.0001)
+args = ARGS(batch_size = 32, epochs=50, lr = 0.0001)
 model = models.resnet18()
 model.fc = nn.Linear(model.fc.in_features, 20)
 optimizer = torch.optim.Adam(model.parameters(), lr = args.lr)

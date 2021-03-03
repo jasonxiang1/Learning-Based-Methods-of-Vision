@@ -49,7 +49,7 @@ class ARGS(object):
     # set this to value >0 if you wish to save every x epochs
     save_freq=-1
     # set true if using GPU during training
-    use_cuda = True
+    use_cuda = False
 
     def __init__(self, **kwargs):
         for k, v in kwargs.items():
