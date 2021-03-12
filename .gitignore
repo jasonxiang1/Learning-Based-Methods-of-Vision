@@ -1,5 +1,8 @@
 __pycache__/*
 .ipynb_checkpoints/
 *.swp
-q1_dataset/*
-VOCdevkit/*
+01\ -\ Introduction\ to\ PyTorch/q1_dataset/*
+01\ -\ Introduction\ to\ PyTorch/VOCdevkit/*
+01\ -\ Introduction\ to\ PyTorch/archive/*
+01\ -\ Introduction\ to\ PyTorch/saved_models/*
+01\ -\ Introduction\ to\ PyTorch/runs/*
