@@ -6,3 +6,9 @@ __pycache__/*
 01\ -\ Introduction\ to\ PyTorch/archive/*
 01\ -\ Introduction\ to\ PyTorch/saved_models/*
 01\ -\ Introduction\ to\ PyTorch/runs/*
+02\ -\ Weakly\ Supervised\ Object\ Localization/data/*
+02\ -\ Weakly\ Supervised\ Object\ Localization/saved_models/*
+02\ -\ Weakly\ Supervised\ Object\ Localization/VOCdevkit/*
+02\ -\ Weakly\ Supervised\ Object\ Localization/wandb/*
+02\ -\ Weakly\ Supervised\ Object\ Localization/VOCtest_06-Nov-2007.tar
+02\ -\ Weakly\ Supervised\ Object\ Localization/VOCtrainval_06-Nov-2007.tar

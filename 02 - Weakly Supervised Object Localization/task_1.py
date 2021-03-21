@@ -144,6 +144,19 @@ def main():
     # also use an LR scheduler to decay LR by 10 every 30 epochs
     # you can also use PlateauLR scheduler, which usually works well
 
+    # TODO: define loss criterion here
+    criterion = nn.BCEWithLogitsLoss(reduction='sum')
+
+    # TODO: read literature find what optimizer was used
+    optimizer = torch.optim.SGD(model.parameters(), lr=args.lr, momentum=args.momentum, weight_decay=args.weight_decay)
+
+    # TODO: fimplement PlateauLR scheduler
+    # FORNOW: choose stepLR scheduler
+    step_size = 30
+    gamma = 0.9
+    LRScheduler = torch.optim.lr_scheduler.StepLR(optimizer, step_size=step_size, gamma=gamma)
+    # LRScheduler = torch.optim.lu_scheduler.ReduceLROnPlateau(optimizer, factor=0.1)
+
 
 
     # optionally resume from a checkpoint
@@ -169,6 +182,9 @@ def main():
     # Also ensure that data directories are correct - the ones use for testing by TAs might be different
     # Resize the images to 512x512
 
+    train_dataset = VOCDataset(split='trainval',image_size=512, top_n = 300)
+    val_dataset = VOCDataset(split='test',image_size=512, top_n = 300)
+
 
 
     train_sampler = None
@@ -193,14 +209,19 @@ def main():
     if args.evaluate:
         validate(val_loader, model, criterion)
         return
-
-    
     
     # TODO: Create loggers for wandb - ideally, use flags since wandb makes it harder to debug code.
+    if USE_WANDB:
+        wandb.init(project="vlr2_task01", reinit=True)
+
+    # get class names from dataset
+    class_id_to_label = train_dataset.CLASS_NAMES
 
 
     for epoch in range(args.start_epoch, args.epochs):
-        adjust_learning_rate(optimizer, epoch)
+        if LRScheduler is not None:
+            LRScheduler.step()
+        # adjust_learning_rate(optimizer, epoch)
 
         # train for one epoch
         train(train_loader, model, criterion, optimizer, epoch)
@@ -221,9 +242,6 @@ def main():
                 'optimizer': optimizer.state_dict(),
             }, is_best)
 
-
-
-
 #TODO: You can add input arguments if you wish
 def train(train_loader, model, criterion, optimizer, epoch):
     batch_time = AverageMeter()
@@ -241,13 +259,16 @@ def train(train_loader, model, criterion, optimizer, epoch):
         data_time.update(time.time() - end)
 
         # TODO: Get inputs from the data dict
-
+        img_input = data['image']
 
         # TODO: Get output from model
-        # TODO: Perform any necessary functions on the output such as clamping
-        # TODO: Compute loss using ``criterion``
-        
+        output = model(img_input)
 
+        # TODO: Perform any necessary functions on the output such as clamping
+        output = maxPoolOutput(output)
+
+        # TODO: Compute loss using ``criterion``
+        loss = criterion(output, data['label'], weights=data['wgt'])
 
         # measure metrics and record loss
         m1 = metric1(imoutput.data, target)
@@ -259,6 +280,9 @@ def train(train_loader, model, criterion, optimizer, epoch):
 
         # TODO:
         # compute gradient and do SGD step
+        optimizer.zero_grad()
+        loss.backward()
+        optimizer.step()
 
 
         # measure elapsed time
@@ -284,9 +308,6 @@ def train(train_loader, model, criterion, optimizer, epoch):
         #TODO: Visualize/log things as mentioned in handout
         #TODO: Visualize at appropriate intervals
 
-
-
-
         # End of train()
 
 
@@ -303,12 +324,18 @@ def validate(val_loader, model, criterion, epoch = 0):
     for i, (data) in enumerate(val_loader):
 
         # TODO: Get inputs from the data dict
+        img_input = data['image']
         
 
 
         # TODO: Get output from model
+        output = model(img_input)
+
         # TODO: Perform any necessary functions on the output
+        output = maxPoolOutput(output)
+
         # TODO: Compute loss using ``criterion``
+        loss = criterion(output, data['label']*data['wgt'])
         
 
 
@@ -344,7 +371,6 @@ def validate(val_loader, model, criterion, epoch = 0):
         avg_m1=avg_m1, avg_m2=avg_m2))
 
     return avg_m1.avg, avg_m2.avg
-
 
 # TODO: You can make changes to this function if you wish (not necessary)
 def save_checkpoint(state, is_best, filename='checkpoint.pth.tar'):
@@ -383,6 +409,13 @@ def metric2(output, target):
     
     return [0]
 
+# helper function
+def maxPoolOutput(x):
+    output = torch.max(x,2)
+    output = torch.max(output[0],2)
+    output = output[0]
+    
+    return output
 
 if __name__ == '__main__':
     main()

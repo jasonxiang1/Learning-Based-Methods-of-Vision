@@ -138,8 +138,9 @@ class VOCDataset(Dataset):
         img = Image.open(fpath)
         width, height = img.size
 
-        img = transforms.ToTensor()(img)
+        # reversed resize and To
         img = transforms.Resize((self.size, self.size))(img)
+        img = transforms.ToTensor()(img)
         img = transforms.Normalize([0.485, 0.456, 0.406], [0.229, 0.224, 0.225])(img)
 
         lab_vec = self.anno_list[index][0]
@@ -159,6 +160,32 @@ class VOCDataset(Dataset):
         Make sure to return only the top_n proposals!
         '''
 
+        # return index of the image
+        roi_index = np.where(self.roi_data['images'][0] == findex)
+
+        # get sorted indices form largest to smallest
+        indicies_highLow = np.argsort(np.array(self.roi_data['boxScores'][0][roi_index[0][0]]),axis=0)
+
+        proposals = []
+
+        if (len(indicies_highLow) < self.top_n):
+            top_proposals = len(indicies_highLow)
+        else:
+            top_proposals = self.top_n
+
+        # print("Current Index: ", findex)
+        # top_proposals = self.top_n
+
+        for i in range(top_proposals):
+            proposals.append(self.roi_data['boxes'][0][roi_index[0][0]][indicies_highLow[-i-1]]/[height, width, height, width])
+
+        proposals = torch.from_numpy(np.squeeze(np.array(proposals),axis=1))
+        if proposals.dim()>2 or proposals.dim() < 2:
+            print("error")
+        # gt_boxes = torch.from_numpy(np.array(gt_boxes))
+        # gt_class_list = torch.from_numpy(np.array(gt_class_list))
+
+        
 
 
         ret = {}
