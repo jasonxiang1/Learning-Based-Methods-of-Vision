@@ -1,3 +1,8 @@
+import sys
+import os
+
+sys.path.append(os.getcwd())
+
 from student_code.simple_baseline_net import SimpleBaselineNet
 from student_code.experiment_runner_base import ExperimentRunnerBase
 from student_code.vqa_dataset import VqaDataset
@@ -52,11 +57,15 @@ class SimpleBaselineExperimentRunner(ExperimentRunnerBase):
 
         super().__init__(train_dataset, val_dataset, model, batch_size, num_epochs, num_data_loader_workers)
 
+        # xavier initialize the model
+        nn.init.xavier_uniform_(self._model.wordEmbedding.weight)
+        nn.init.xavier_uniform_(self._model.combinedOutput[0].weight)
+
         momentum = 0.9
         weight_decay = 1e-4
         ############ 2.5 TODO: set up optimizer
-        self.optimizer_word = torch.optim.SGD(self._model.wordEmbedding.parameters(), lr=0.8, momentum=momentum, weight_decay=weight_decay)
-        self.optimizer_softmax = torch.optim.SGD(self._model.combinedOutput.parameters(), lr=0.1, momentum=momentum, weight_decay=weight_decay)
+        self.optimizer_word = torch.optim.SGD(self._model.wordEmbedding.parameters(), lr=0.8, momentum = momentum, weight_decay = weight_decay) # , momentum=momentum, weight_decay=weight_decay
+        self.optimizer_softmax = torch.optim.SGD(self._model.combinedOutput.parameters(), lr=0.01, momentum = momentum, weight_decay = weight_decay) # , momentum=momentum, weight_decay=weight_decay
         ############
 
 
@@ -64,12 +73,8 @@ class SimpleBaselineExperimentRunner(ExperimentRunnerBase):
         ############ 2.7 TODO: compute the loss, run back propagation, take optimization step.
         lossFunc = nn.CrossEntropyLoss()
 
-
-        loss = lossFunc(predicted_answers, true_answer_ids)
-
         self.optimizer_word.zero_grad()
         self.optimizer_softmax.zero_grad()
-
 
         wordClamp = 1500.0
         softmaxClamp = 20.0
@@ -78,6 +83,10 @@ class SimpleBaselineExperimentRunner(ExperimentRunnerBase):
 
         self._model.wordEmbedding.weight.data = self._model.wordEmbedding.weight.clamp(-wordClamp, wordClamp)
         self._model.combinedOutput[0].weight.data = self._model.combinedOutput[0].weight.clamp(-softmaxClamp, softmaxClamp)
+
+
+        loss = lossFunc(predicted_answers, true_answer_ids)
+
 
         # for name,param in self._model.wordEmbedding.named_parameters():
         #     if 'weight' in name:

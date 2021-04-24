@@ -12,3 +12,5 @@ __pycache__/*
 02\ -\ Weakly\ Supervised\ Object\ Localization/wandb/*
 02\ -\ Weakly\ Supervised\ Object\ Localization/VOCtest_06-Nov-2007.tar
 02\ -\ Weakly\ Supervised\ Object\ Localization/VOCtrainval_06-Nov-2007.tar
+03\ -\ Visual\ Question\ Answering\ with\ PyTorch/data/*
+03\ -\ Visual\ Question\ Answering\ with\ PyTorch/runs/*

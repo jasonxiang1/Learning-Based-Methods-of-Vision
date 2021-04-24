@@ -1,6 +1,10 @@
 import os
 from torch.utils.data import DataLoader
 import argparse
+import sys
+
+sys.path.append(os.getcwd())
+
 from student_code.simple_baseline_experiment_runner import SimpleBaselineExperimentRunner
 from student_code.coattention_experiment_runner import CoattentionNetExperimentRunner
 

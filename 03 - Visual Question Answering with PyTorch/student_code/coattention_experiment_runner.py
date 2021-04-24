@@ -1,7 +1,14 @@
+import sys
+import os
+
+sys.path.append(os.getcwd())
+
 from student_code.coattention_net import CoattentionNet
 from student_code.experiment_runner_base import ExperimentRunnerBase
 from student_code.vqa_dataset import VqaDataset
 
+import torchvision.models as models
+import torch.nn as nn
 
 class CoattentionNetExperimentRunner(ExperimentRunnerBase):
     """
@@ -12,8 +19,13 @@ class CoattentionNetExperimentRunner(ExperimentRunnerBase):
                  num_data_loader_workers, cache_location, lr, log_validation):
 
         ############ 3.1 TODO: set up transform and image encoder
-        transform = None
-        image_encoder = None
+        transform = transform = transforms.Compose([transforms.Resize((448,448)), 
+                                        transforms.ToTensor(), 
+                                        transforms.Normalize((0.485, 0.456, 0.406), (0.229, 0.224, 0.225)), 
+                                        ])
+        # TODO: declare and impement ResNet18 as the image encoder
+        image_encoder = models.resnet18(pretrained=True)
+        
         ############ 
 
         question_word_list_length = 5746
@@ -28,8 +40,8 @@ class CoattentionNetExperimentRunner(ExperimentRunnerBase):
                                    answer_list_length=answer_list_length,
                                    cache_location=os.path.join(cache_location, "tmp_train"),
                                    ############ 3.1 TODO: fill in the arguments
-                                   question_word_to_id_map='change this argument',
-                                   answer_to_id_map='change this argument',
+                                   question_word_to_id_map=None,
+                                   answer_to_id_map=None,
                                    ############
                                    pre_encoder=image_encoder)
         val_dataset = VqaDataset(image_dir=test_image_dir,
@@ -41,8 +53,8 @@ class CoattentionNetExperimentRunner(ExperimentRunnerBase):
                                  answer_list_length=answer_list_length,
                                  cache_location=os.path.join(cache_location, "tmp_val"),
                                  ############ 3.1 TODO: fill in the arguments
-                                 question_word_to_id_map='change this argument',
-                                 answer_to_id_map='change this argument',
+                                 question_word_to_id_map=train_dataset.question_word_to_id_map,
+                                 answer_to_id_map=train_dataset.answer_to_id_map,
                                  ############
                                  pre_encoder=image_encoder)
 

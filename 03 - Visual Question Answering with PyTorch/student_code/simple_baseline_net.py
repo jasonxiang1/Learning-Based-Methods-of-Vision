@@ -1,3 +1,8 @@
+import sys
+import os
+
+sys.path.append(os.getcwd())
+
 import torch.nn as nn
 
 
@@ -17,13 +22,14 @@ class SimpleBaselineNet(nn.Module):
     def __init__(self, questionVocabSize, answerVocabSize):
         super().__init__()
 	    ############ 2.2 TODO
-        self.embeddingOutput = 1024
+        self.embeddingOutput = 2048
         self.questionVocabSize = questionVocabSize
         self.answerVocabSize = answerVocabSize
 
         self.imageModel = googlenet(pretrained=True)
         # self.linear1 = nn.Linear(self.questionVocabSize, 1024)
-        self.wordEmbedding = nn.Embedding(self.questionVocabSize, self.embeddingOutput, padding_idx=self.questionVocabSize-1)
+        # self.wordEmbedding = nn.Embedding(self.questionVocabSize, self.embeddingOutput, padding_idx=self.questionVocabSize-1)
+        self.wordEmbedding = nn.Linear(self.questionVocabSize, self.embeddingOutput)
         
         self.combinedOutput = nn.Sequential(
             nn.Linear(1000+self.embeddingOutput, self.answerVocabSize)# , 
@@ -38,11 +44,15 @@ class SimpleBaselineNet(nn.Module):
             imageOutput = imageOutput[2]
         batchSize, height, width = question_encoding.size()
 
+        # import pdb; pdb.set_trace()
+
         # instead of using bag of words, convert question_encoding to vector of array indices
-        # questionEmbed = torch.sum(question_encoding, 1)
-        questionEmbed = torch.nonzero(question_encoding, as_tuple=False)[:,2].reshape((batchSize, height))
+        questionEmbed = torch.sum(question_encoding, 1)
+        # questionEmbed = torch.nonzero(question_encoding, as_tuple=False)[:,2].reshape((batchSize, height))
+
+        # (batch size x 26) < - indices values to the question dictionary
         wordOutput = self.wordEmbedding(questionEmbed)
-        wordOutput = wordOutput.mean(dim=1)
+        # wordOutput = wordOutput.mean(dim=1)
 
         # wordOutput = self.linear1(questionEmbed)
         combinedVect = torch.cat((imageOutput, wordOutput), 1)
@@ -53,8 +63,6 @@ class SimpleBaselineNet(nn.Module):
         output = self.combinedOutput(combinedVect)
 
         # nn.embedding(length, hidden,)
-
-
 
 
 	    ############

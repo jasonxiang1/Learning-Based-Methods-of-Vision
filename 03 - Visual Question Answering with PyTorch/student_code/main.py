@@ -1,8 +1,13 @@
 import argparse
+import sys
+import os
+
+sys.path.append(os.getcwd())
+
 from student_code.simple_baseline_experiment_runner import SimpleBaselineExperimentRunner
 from student_code.coattention_experiment_runner import CoattentionNetExperimentRunner
 
-import os
+
 
 if __name__ == "__main__":
     currDir = os.getcwd()
@@ -23,12 +28,12 @@ if __name__ == "__main__":
     parser.add_argument('--test_image_dir', type=str, default=default_test_image_dir)
     parser.add_argument('--test_question_path', type=str, default=default_test_question_path)
     parser.add_argument('--test_annotation_path', type=str, default=default_test_annotation_path)
-    parser.add_argument('--batch_size', type=int, default=8) # default: batch size is 100
-    parser.add_argument('--num_epochs', type=int, default=10)
+    parser.add_argument('--batch_size', type=int, default=75) # default: batch size is 100
+    parser.add_argument('--num_epochs', type=int, default=10) # default: epoch size is 100
     parser.add_argument('--num_data_loader_workers', type=int, default=10)
     parser.add_argument('--cache_location', type=str, default="")
     parser.add_argument('--lr', type=float, default=4e-4)
-    parser.add_argument('--log_validation', action='store_true')
+    parser.add_argument('--log_validation', action='store_true') # default: store_true
     args = parser.parse_args()
 
     if args.model == "simple":
@@ -37,7 +42,6 @@ if __name__ == "__main__":
         experiment_runner_class = CoattentionNetExperimentRunner
     else:
         raise ModuleNotFoundError()
-
 
     experiment_runner = experiment_runner_class(train_image_dir=args.train_image_dir,
                                                 train_question_path=args.train_question_path,

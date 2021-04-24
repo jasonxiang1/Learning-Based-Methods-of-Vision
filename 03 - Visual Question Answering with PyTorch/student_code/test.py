@@ -1,9 +1,12 @@
 from torch.utils.data import Dataset
+import sys
+import os
+
+sys.path.append(os.getcwd())
+
 from external.vqa.vqa import VQA
 
 from student_code.vqa_dataset import VqaDataset
-
-import os
 
 def create_word_list(sentences):
     """

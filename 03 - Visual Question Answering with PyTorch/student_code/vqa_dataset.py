@@ -1,4 +1,9 @@
 from torch.utils.data import Dataset
+import sys
+import os
+
+sys.path.append(os.getcwd())
+
 from external.vqa.vqa import VQA
 
 from PIL import Image
@@ -26,6 +31,7 @@ class VqaDataset(Dataset):
             image_filename_pattern (string): The pattern the filenames of images in this dataset use (eg "COCO_train2014_{}.jpg")
         """
         self._vqa = VQA(annotation_file=annotation_json_file_path, question_file=question_json_file_path)
+        # import pdb; pdb.set_trace()
         self._image_dir = image_dir
         self._image_filename_pattern = image_filename_pattern
         self._transform = transform
@@ -201,7 +207,9 @@ class VqaDataset(Dataset):
             # load the image from disk, apply self._transform (if not None)
             tempImageID = self._vqa.questions['questions'][idx]['image_id']
             tempImageName = '0'*(12 - len(str(tempImageID))) + str(tempImageID)
-            tempImageIDString = self._image_dir + '\\' + self._image_filename_pattern.format(tempImageName)
+            # tempImageIDString = self._image_dir + '\\' + self._image_filename_pattern.format(tempImageName)
+            tempImageIDString = os.path.join(self._image_dir, self._image_filename_pattern.format(tempImageName))
+            #print(tempImageIDString)
             imagePIL = Image.open(tempImageIDString).convert('RGB')
             if self._transform is not None:
                 imageTensor = self._transform(imagePIL)
@@ -230,7 +238,7 @@ class VqaDataset(Dataset):
 
         # set all indices after the question to be 1
         if len(questionDict) < self._max_question_length:
-            questionOneHotArray[len(questionDict):, -1] = 1
+            questionOneHotArray[len(questionDict):, -1] = 0
 
             # questionOneHotArray = torch.cat((questionOneHotArray, tempquestionOneHotVect.unsqueeze(0)), 0)
             # questionOneHotArray.append(tempquestionOneHotVect)
