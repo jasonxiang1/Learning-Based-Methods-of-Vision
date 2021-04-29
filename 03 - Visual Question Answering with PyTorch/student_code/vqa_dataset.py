@@ -11,7 +11,9 @@ from torchvision import transforms
 import torch
 
 import numpy as np
+import pickle
 
+import time
 
 class VqaDataset(Dataset):
     """
@@ -169,11 +171,8 @@ class VqaDataset(Dataset):
         # return the number of questions
         return len(self._vqa.questions['questions'])
 
-
-
-
         ############
-        raise NotImplementedError()
+        # raise NotImplementedError()
 
     def __getitem__(self, idx):
         """
@@ -195,18 +194,72 @@ class VqaDataset(Dataset):
             tempAnswersArr.append(answer['answer'])
 
         ############
+        tempImageID = self._vqa.questions['questions'][idx]['image_id']
+        tempImageName = '0'*(12 - len(str(tempImageID))) + str(tempImageID)
+        
 
         if self._cache_location is not None and self._pre_encoder is not None:
             ############ 3.2 TODO
             # implement your caching and loading logic here
+            # cache_dir = os.path.join(os.getcwd(), self._cache_location)
+            cache_dir= self._cache_location
+            fileName = 'resnet_avgpool_'+tempImageName
+            fileExists = os.path.isfile(os.path.join(cache_dir, fileName+'.pkl'))
+
+            # check if file exists in the cache location directory
+            if fileExists:
+                # load the file and set that as the "image" output
+                try:
+                    with open(os.path.join(cache_dir, fileName+'.pkl'), 'rb') as f:
+                        resnetFeatureVar = pickle.load(f)
+                    imageTensor = resnetFeatureVar
+                except:
+                    import pdb; pdb.set_trace()
+                    with open(os.path.join(cache_dir, fileName+'.pkl'), 'rb') as f:
+                        resnetFeatureVar = pickle.load(f)
+                    imageTensor = resnetFeatureVar
+
+            else:
+                # load the image
+                tempImageIDString = os.path.join(self._image_dir, self._image_filename_pattern.format(tempImageName))
+                #print(tempImageIDString)
+                try:
+                    imagePILVar = Image.open(tempImageIDString).convert('RGB')
+                except:
+                    # import pdb; pdb.set_trace()
+                    import pdb; pdb.set_trace()
+                    imagePILVar = Image.open(tempImageIDString).convert('RGB')
+                if self._transform is not None:
+                    imageTensorVar = self._transform(imagePILVar)
+                else:
+                    imageTensorVar = transforms.ToTensor()(imagePILVar)
+                # pass through image encoder (i.e. resnet18)
+                if len(imageTensorVar.size()) == 3:
+                    imageTensorVar = imageTensorVar.unsqueeze(0)
+                output = self._pre_encoder(imageTensorVar) # (1, 512)
+                output = torch.squeeze(output)
+                # pickle dump the variable
+                with open(os.path.join(cache_dir, fileName + '.pkl'), 'wb') as f:
+                    pickle.dump(output, f)
+
+                imageTensor = output
+
+                # save to cache directory
+
+            # if file is in tmp_train:
+            #     pkl.load ( file )
+            #     image = file
+            # else:
+            #     load image
+            #     output = resent(image)
+            #     pkl.dump(output)
+            #     image = output
 
             ############
-            raise NotImplementedError()
+            # raise NotImplementedError()
         else:
             ############ 1.9 TODO
             # load the image from disk, apply self._transform (if not None)
-            tempImageID = self._vqa.questions['questions'][idx]['image_id']
-            tempImageName = '0'*(12 - len(str(tempImageID))) + str(tempImageID)
             # tempImageIDString = self._image_dir + '\\' + self._image_filename_pattern.format(tempImageName)
             tempImageIDString = os.path.join(self._image_dir, self._image_filename_pattern.format(tempImageName))
             #print(tempImageIDString)

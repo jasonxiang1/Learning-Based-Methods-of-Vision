@@ -16,7 +16,7 @@ class ExperimentRunnerBase(object):
         self._num_epochs = num_epochs
         self._log_freq = 20  # Steps
         self._test_freq = 500  # Steps
-        self._validation_maxSamples = 2000
+        self._validation_maxSamples = 1500
         self.batch_size = batch_size
 
 
@@ -33,7 +33,7 @@ class ExperimentRunnerBase(object):
 
         self._log_validation = log_validation
 
-        self.writer = SummaryWriter("runs/VQD_Net_Run_01")
+        self.writer = SummaryWriter("runs/VQD_CoAttention_02")
 
     def _optimize(self, predicted_answers, true_answers):
         """
@@ -50,6 +50,7 @@ class ExperimentRunnerBase(object):
 
         softmaxFunc = nn.Softmax(dim=1)
         print("Begin Validation Loop")
+        # import pdb; pdb.set_trace()
 
         
         for valbatch_id, valbatch_data in enumerate(self._val_dataset_loader):
@@ -77,7 +78,7 @@ class ExperimentRunnerBase(object):
             output_answer = torch.argmax(output,1)
 
             # import pdb; pdb.set_trace()
-            num_batch_correct = predicted_answer_array == output_answer
+            num_batch_correct = predicted_answer_array.int() == output_answer.int()
             
             num_val_correct += torch.sum(num_batch_correct.int())
 
@@ -97,7 +98,7 @@ class ExperimentRunnerBase(object):
             log_idx = 0
             questionDict = self._val_dataset_loader.dataset.question_word_to_id_map
             answerDict = self._val_dataset_loader.dataset.answer_to_id_map
-            self.writer.add_image("Input Image", image[log_idx])
+            # self.writer.add_image("Input Image", image[log_idx])
 
             # convert question to string
             # import pdb; pdb.set_trace()
@@ -105,7 +106,9 @@ class ExperimentRunnerBase(object):
             self.writer.add_text("Input Question", questionString)
             answerString = self.hot_vector_to_string(output_answer[log_idx], answerDict)
             self.writer.add_text("Predicted Answer", answerString)
-            gtanswerString = self.hot_vector_to_string(answers[log_idx], answerDict)
+            gtanswer = torch.sum(answers[log_idx], 0)
+            gtanswer = torch.argmax(gtanswer)
+            gtanswerString = self.hot_vector_to_string(gtanswer, answerDict)
             self.writer.add_text("Ground Truth Answer", gtanswerString)
             # self.writer.add_answer("")
 
@@ -192,7 +195,7 @@ class ExperimentRunnerBase(object):
                     # you probably want to plot something here
                     self.writer.add_scalar('Training Loss', loss, current_step)
 
-                    print(self._model.wordEmbedding.weight.data
+                    # print(self._model.wordEmbedding.weight.data)
 
                     ############
 

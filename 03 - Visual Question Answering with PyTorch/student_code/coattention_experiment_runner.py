@@ -7,8 +7,10 @@ from student_code.coattention_net import CoattentionNet
 from student_code.experiment_runner_base import ExperimentRunnerBase
 from student_code.vqa_dataset import VqaDataset
 
+import torch.optim
 import torchvision.models as models
 import torch.nn as nn
+import torchvision.transforms as transforms
 
 class CoattentionNetExperimentRunner(ExperimentRunnerBase):
     """
@@ -19,12 +21,16 @@ class CoattentionNetExperimentRunner(ExperimentRunnerBase):
                  num_data_loader_workers, cache_location, lr, log_validation):
 
         ############ 3.1 TODO: set up transform and image encoder
-        transform = transform = transforms.Compose([transforms.Resize((448,448)), 
+        transform = transforms.Compose([transforms.Resize((448,448)), 
                                         transforms.ToTensor(), 
                                         transforms.Normalize((0.485, 0.456, 0.406), (0.229, 0.224, 0.225)), 
                                         ])
         # TODO: declare and impement ResNet18 as the image encoder
         image_encoder = models.resnet18(pretrained=True)
+        image_encoder.fc = nn.Sequential()
+        image_encoder.avgpool = nn.Sequential()
+        # del image_encoder.fc
+        
         
         ############ 
 
@@ -58,19 +64,33 @@ class CoattentionNetExperimentRunner(ExperimentRunnerBase):
                                  ############
                                  pre_encoder=image_encoder)
 
-        self._model = CoattentionNet()
+        self._model = CoattentionNet(questionVocabSize=question_word_list_length+1, answerVocabSize=answer_list_length+1, questionLength=26)
 
         super().__init__(train_dataset, val_dataset, self._model, batch_size, num_epochs,
-                         num_data_loader_workers=num_data_loader_workers, log_validation=False)
+                         num_data_loader_workers=num_data_loader_workers, log_validation=True)
 
         ############ 3.4 TODO: set up optimizer
+        lr = 4e-4 # try 3e-4 if accuracy stagnates
+        momentum = 0.99
+        weight_decay = 1e-4
+        self.optimizer = torch.optim.Adam(self._model.parameters(), lr = lr, weight_decay = weight_decay)
 
 
         ############ 
 
     def _optimize(self, predicted_answers, true_answer_ids):
         ############ 3.4 TODO: implement the optimization step
+        lossFunc = nn.CrossEntropyLoss()
+
+        self.optimizer.zero_grad()
+
+        loss = lossFunc(predicted_answers, true_answer_ids)
+
+        loss.backward()
+
+        self.optimizer.step()
         
+        return loss.item()
         
         ############ 
-        raise NotImplementedError()
+        # raise NotImplementedError()
