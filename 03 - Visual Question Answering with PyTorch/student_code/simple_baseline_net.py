@@ -22,17 +22,18 @@ class SimpleBaselineNet(nn.Module):
     def __init__(self, questionVocabSize, answerVocabSize):
         super().__init__()
 	    ############ 2.2 TODO
-        self.embeddingOutput = 2048
+        self.embeddingOutput = 1024
         self.questionVocabSize = questionVocabSize
         self.answerVocabSize = answerVocabSize
 
         self.imageModel = googlenet(pretrained=True)
+        self.imageModel.fc = nn.Sequential()
         # self.linear1 = nn.Linear(self.questionVocabSize, 1024)
         # self.wordEmbedding = nn.Embedding(self.questionVocabSize, self.embeddingOutput, padding_idx=self.questionVocabSize-1)
         self.wordEmbedding = nn.Linear(self.questionVocabSize, self.embeddingOutput)
         
         self.combinedOutput = nn.Sequential(
-            nn.Linear(1000+self.embeddingOutput, self.answerVocabSize)# , 
+            nn.Linear(1024+self.embeddingOutput, self.answerVocabSize)# , 
             # nn.Softmax(dim=1)
         )
 	    ############

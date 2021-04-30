@@ -64,8 +64,8 @@ class SimpleBaselineExperimentRunner(ExperimentRunnerBase):
         momentum = 0.9
         weight_decay = 1e-4
         ############ 2.5 TODO: set up optimizer
-        self.optimizer_word = torch.optim.SGD(self._model.wordEmbedding.parameters(), lr=0.8, momentum = momentum, weight_decay = weight_decay) # , momentum=momentum, weight_decay=weight_decay
-        self.optimizer_softmax = torch.optim.SGD(self._model.combinedOutput.parameters(), lr=0.01, momentum = momentum, weight_decay = weight_decay) # , momentum=momentum, weight_decay=weight_decay
+        self.optimizer_word = torch.optim.SGD(self._model.wordEmbedding.parameters(), lr=0.8, weight_decay = weight_decay) # , momentum=momentum, weight_decay=weight_decay
+        self.optimizer_softmax = torch.optim.SGD(self._model.combinedOutput.parameters(), lr=0.01, weight_decay = weight_decay) # , momentum=momentum, weight_decay=weight_decay
         ############
 
 
@@ -79,10 +79,12 @@ class SimpleBaselineExperimentRunner(ExperimentRunnerBase):
         wordClamp = 1500.0
         softmaxClamp = 20.0
         grad_value = 20.0
-        nn.utils.clip_grad_value_(self._model.parameters(), clip_value = grad_value)
+        nn.utils.clip_grad_value_(self._model.wordEmbedding.parameters(), clip_value = grad_value)
+        nn.utils.clip_grad_value_(self._model.combinedOutput.parameters(), clip_value = grad_value)
 
-        self._model.wordEmbedding.weight.data = self._model.wordEmbedding.weight.clamp(-wordClamp, wordClamp)
-        self._model.combinedOutput[0].weight.data = self._model.combinedOutput[0].weight.clamp(-softmaxClamp, softmaxClamp)
+
+        # self._model.wordEmbedding.weight.data = self._model.wordEmbedding.weight.clamp(-wordClamp, wordClamp)
+        # self._model.combinedOutput[0].weight.data = self._model.combinedOutput[0].weight.clamp(-softmaxClamp, softmaxClamp)
 
 
         loss = lossFunc(predicted_answers, true_answer_ids)
@@ -101,8 +103,9 @@ class SimpleBaselineExperimentRunner(ExperimentRunnerBase):
 
         loss.backward()
 
-        self.optimizer_word.step()
         self.optimizer_softmax.step()
+        self.optimizer_word.step()
+
 
         ############
         # raise NotImplementedError()

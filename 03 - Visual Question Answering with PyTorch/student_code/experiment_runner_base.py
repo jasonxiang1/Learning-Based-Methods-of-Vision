@@ -2,6 +2,7 @@ from torch.utils.data import DataLoader
 import torch
 
 import torch.nn as nn
+import torchvision.transforms as transforms
 
 from torch.utils.tensorboard import SummaryWriter
 
@@ -33,7 +34,7 @@ class ExperimentRunnerBase(object):
 
         self._log_validation = log_validation
 
-        self.writer = SummaryWriter("runs/VQD_CoAttention_02")
+        self.writer = SummaryWriter("runs/VQD_Simple_02")
 
     def _optimize(self, predicted_answers, true_answers):
         """
@@ -98,7 +99,16 @@ class ExperimentRunnerBase(object):
             log_idx = 0
             questionDict = self._val_dataset_loader.dataset.question_word_to_id_map
             answerDict = self._val_dataset_loader.dataset.answer_to_id_map
-            # self.writer.add_image("Input Image", image[log_idx])
+
+            valImage = image[log_idx]
+            normImageTransform = transforms.Compose([
+                transforms.Normalize(mean=[0.,0.,0.], std=[1/0.229, 1/0.224, 1/0.225]), 
+                transforms.Normalize(mean=[-0.485, -0.456, -0.406], std=[1., 1., 1.]),
+            ])
+            valImage = normImageTransform(valImage)
+
+            self.writer.add_image("Input Image", valImage)
+
 
             # convert question to string
             # import pdb; pdb.set_trace()

@@ -28,15 +28,13 @@ if __name__ == "__main__":
     parser.add_argument('--test_image_dir', type=str, default=default_test_image_dir)
     parser.add_argument('--test_question_path', type=str, default=default_test_question_path)
     parser.add_argument('--test_annotation_path', type=str, default=default_test_annotation_path)
-    parser.add_argument('--batch_size', type=int, default=300) # default: batch size is 100
+    parser.add_argument('--batch_size', type=int, default=100) # default: batch size is 100
     parser.add_argument('--num_epochs', type=int, default=10) # default: epoch size is 100
-    parser.add_argument('--num_data_loader_workers', type=int, default=0)
+    parser.add_argument('--num_data_loader_workers', type=int, default=5)
     parser.add_argument('--cache_location', type=str, default=currDir)
     parser.add_argument('--lr', type=float, default=4e-4)
     parser.add_argument('--log_validation', action='store_true') # default: store_true
     args = parser.parse_args()
-
-    args.model = 'coattention'
 
     if args.model == "simple":
         experiment_runner_class = SimpleBaselineExperimentRunner
