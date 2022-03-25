@@ -179,9 +179,8 @@ class VOCDataset(Dataset):
         for i in range(top_proposals):
             proposals.append(self.roi_data['boxes'][0][roi_index[0][0]][indicies_highLow[-i-1]]/[height, width, height, width])
 
-        proposals = torch.from_numpy(np.squeeze(np.array(proposals),axis=1))
-        if proposals.dim()>2 or proposals.dim() < 2:
-            print("error")
+        proposals = np.squeeze(np.array(proposals),axis=1)
+        proposals = proposals[:,[1,0,3,2]]
         # gt_boxes = torch.from_numpy(np.array(gt_boxes))
         # gt_class_list = torch.from_numpy(np.array(gt_class_list))
 
